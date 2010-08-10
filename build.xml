@@ -1,0 +1,130 @@
+<project name="jjunk" default="usage" basedir=".">
+
+
+    <!--===================================================== 
+    External properties file, path definitions and filesets
+    ======================================================-->
+
+	<property name="srcdir" value="src"/>
+	<property name="builddir" value="bin"/>
+	<property name="distdir" value="dist"/>
+	<property name="extdir" value="ext"/>
+	<property name="extbin" value="${extdir}/bin" />
+	<property name="extjar" value="${extdir}/jar" />
+	<property name="antlibdir"  value="${extdir}/antlib" />
+	<property name="antlib_bin"  value="${antlibdir}/bin" />
+	<property name="antlib_jar"  value="${antlibdir}/jar" />	
+	<property name="etcdir" value="etc"/>
+	
+	<property name="jjunkjar" value="jjunk.jar"/>
+	
+	<path id="jjunk.ext.path">
+		<dirset dir="${extbin}" />
+		<fileset dir="${extjar}">
+			<include name="**/*.jar"/>
+		</fileset>
+	</path>
+	
+	<path id="ant.lib.path">
+		<dirset dir="${antlib_bin}" />
+		<fileset dir="${antlib_jar}">
+			<include name="**/*.jar"/>
+		</fileset>
+		<fileset dir="${extjar}">
+			<include name="**/*.jar"/>
+		</fileset>
+	</path>
+	
+	<path id="jjunk.bin">
+	    <pathelement location="bin"/>
+		<pathelement location="${extbin}"/>
+	</path>
+
+
+	<target name="dist" description="Create the files necessary for distribution" 
+		depends="init, compile, makejar">
+	</target>
+	
+	<target name="usage" description="Display this message">
+		<java classname="org.apache.tools.ant.Main">
+			<arg value="-projecthelp" />
+		</java>
+	</target>
+	
+    <!--===================================================== 
+	The following targets are used during the build process,
+	to initialise folders, clean out previos compiles, do the
+	compile, run the update version job and make the jar.
+    ======================================================-->
+    <target name="clean" depends="" description="Clean the project">
+		<delete includeemptydirs="true">
+			<fileset dir="${builddir}" >
+			    <include name="**/*"/>
+			</fileset>
+		</delete>
+    	<delete includeemptydirs="true">
+    		<fileset dir="${distdir}" >
+    			<include name="**/*"/>
+    		</fileset>
+    	</delete>
+    </target>
+
+	<target name="init" description="Create the initial directories">
+		<delete dir="${builddir}"/>
+		<mkdir dir="${builddir}"/>	
+		<mkdir dir="${distdir}"/>
+	</target>
+
+	<target name="compile" description="Compile the .java sources" depends="init">
+		<javac 
+			srcdir="${srcdir}"
+	        destdir="${builddir}"
+	        debug="on"
+			verbose="on"
+			classpathref="jjunk.ext.path"/>
+		<copy  todir="${builddir}">
+        	<fileset dir="${srcdir}">
+        		<include name="**/*.properties"/>
+        	</fileset>
+		</copy>
+	</target>
+	
+    <target name ="makejar" description="Create the client JAR" depends="compile">
+    	<delete>
+    		<fileset file="${distdir}/${jjunkjar}">
+    		</fileset>
+    	</delete>
+    	
+    	<unjar dest = "${distdir}/jarlib">
+			<fileset dir = "${extjar}">
+			    <include name = "*.jar"/>
+				<exclude name = "xdoclet*"/>
+				<exclude name = "xjavadoc*"/>
+				<exclude name = "jrelease*"/>
+				<exclude name = "hsqldb*"/>
+			</fileset>
+		</unjar>
+    	
+        <jar jarfile="${distdir}/${jjunkjar}" manifest="etc/MANIFEST.MF">
+			<fileset dir="${builddir}">
+			    <include name="**/*.class"/>
+			</fileset>
+        	<fileset dir="${distdir}/jarlib">
+        		<include name="**/*"/>
+        	</fileset>
+        	<fileset dir="${extbin}">
+        		<include name="**/*"/>
+        	</fileset>
+        	<fileset dir=".">
+        		<include name="etc/*"/>
+        	</fileset>
+        	<fileset dir="${srcdir}">
+        		<include name="**/*.properties"/>
+        	</fileset>
+        	
+    	</jar>
+		<delete dir="${distdir}/lib"/>
+    	<delete dir="${distdir}/jarlib"/>
+    </target>
+
+</project> 
