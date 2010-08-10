@@ -95,6 +95,7 @@
     		</fileset>
     	</delete>
     	
+    	<mkdir dir="${distdir}/jarlib"/>
     	<unjar dest = "${distdir}/jarlib">
 			<fileset dir = "${extjar}">
 			    <include name = "*.jar"/>
